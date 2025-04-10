@@ -1,11 +1,13 @@
 Package: scFM
-Type: Package
-Title: What the Package Does (Short Line)
+Title: Bayesian Segmented Copula Factor Model for Single-Cell Data
 Version: 1.0
-Date: 2025-04-09
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line).
-License: What license is it under?
-Imports: Rcpp (>= 1.0.14)
-LinkingTo: Rcpp, RcppArmadillo
+Authors@R: c(
+    person("Junsouk", "Choi", , "junsoukchoi@korea.ac.kr", role = "aut"),
+    person("Seunghoon", "Han", , "syshhan5172@naver.com", role = "cre")
+  )
+Description: Implements the Bayesian segmented Gaussian copula factor
+    model for single-cell sequencing data.
+License: 
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
