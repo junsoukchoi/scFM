@@ -1,22 +1,15 @@
 #' Gibbs sampler for Bayesian segmented Gaussian copula factor model
 #'
-#' @name gibbs_SGCFM
 #' @param x Data matrix (n × p), typically with count-type entries.
 #' @param k Number of latent factors.
 #' @param starting A list of starting values for the parameters (e.g., Z, delta, Lambda, U, etc.).
 #' @param priors A list of prior hyperparameters (e.g., for Sigma and Phi).
 #' @param nmcmc Number of MCMC iterations.
 #'
-#' @return A list containing MCMC samples for Lambda and U.
-#'
+#' @returns A list containing MCMC samples for Lambda and U.
 #' @export
-
-# load Cpp functions necessary for Bayesian factor analysis with segmented Gaussian copulas
-library(Rcpp)
-library(RcppArmadillo)
-# sourceCpp("sample_conditionals.cpp")
-
-# gibbs sampler for Bayesian factor models with segmented Gaussian copulas
+#'
+#' @examples
 gibbs_SGCFM = function(x, k, starting, priors, nmcmc)
 {
    n = nrow(x)

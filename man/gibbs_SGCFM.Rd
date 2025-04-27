@@ -3,6 +3,9 @@
 \name{gibbs_SGCFM}
 \alias{gibbs_SGCFM}
 \title{Gibbs sampler for Bayesian segmented Gaussian copula factor model}
+\usage{
+gibbs_SGCFM(x, k, starting, priors, nmcmc)
+}
 \arguments{
 \item{x}{Data matrix (n × p), typically with count-type entries.}
 
