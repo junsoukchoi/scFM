@@ -17,3 +17,31 @@ rcpparma_bothproducts <- function(x) {
     .Call(`_scFM_rcpparma_bothproducts`, x)
 }
 
+sample_Z <- function(Z, delta, Lambda, U, Sigma, invD, X, beta) {
+    .Call(`_scFM_sample_Z`, Z, delta, Lambda, U, Sigma, invD, X, beta)
+}
+
+sample_delta <- function(Z, X, beta) {
+    .Call(`_scFM_sample_delta`, Z, X, beta)
+}
+
+sample_Lambda <- function(Z, U, Sigma, Phi, tau, Psi) {
+    .Call(`_scFM_sample_Lambda`, Z, U, Sigma, Phi, tau, Psi)
+}
+
+sample_U <- function(Z, Lambda, invSigma) {
+    .Call(`_scFM_sample_U`, Z, Lambda, invSigma)
+}
+
+sample_Phi <- function(Lambda, alpha) {
+    .Call(`_scFM_sample_Phi`, Lambda, alpha)
+}
+
+sample_c <- function(U, pi, mu) {
+    .Call(`_scFM_sample_c`, U, pi, mu)
+}
+
+sample_mu_pi <- function(U, c, phi, H, alpha) {
+    .Call(`_scFM_sample_mu_pi`, U, c, phi, H, alpha)
+}
+

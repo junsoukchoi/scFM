@@ -54,12 +54,119 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_Z
+arma::mat sample_Z(const arma::mat& Z, const arma::mat& delta, const arma::mat& Lambda, const arma::mat& U, const arma::mat& Sigma, const arma::mat& invD, const arma::mat& X, double beta);
+RcppExport SEXP _scFM_sample_Z(SEXP ZSEXP, SEXP deltaSEXP, SEXP LambdaSEXP, SEXP USEXP, SEXP SigmaSEXP, SEXP invDSEXP, SEXP XSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Lambda(LambdaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type U(USEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Sigma(SigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type invD(invDSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_Z(Z, delta, Lambda, U, Sigma, invD, X, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_delta
+arma::mat sample_delta(const arma::mat& Z, const arma::mat& X, double beta);
+RcppExport SEXP _scFM_sample_delta(SEXP ZSEXP, SEXP XSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_delta(Z, X, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_Lambda
+arma::mat sample_Lambda(const arma::mat& Z, const arma::mat& U, const arma::mat& Sigma, const arma::vec& Phi, double tau, const arma::mat& Psi);
+RcppExport SEXP _scFM_sample_Lambda(SEXP ZSEXP, SEXP USEXP, SEXP SigmaSEXP, SEXP PhiSEXP, SEXP tauSEXP, SEXP PsiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type U(USEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Sigma(SigmaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type Phi(PhiSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Psi(PsiSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_Lambda(Z, U, Sigma, Phi, tau, Psi));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_U
+arma::mat sample_U(const arma::mat& Z, const arma::mat& Lambda, const arma::mat& invSigma);
+RcppExport SEXP _scFM_sample_U(SEXP ZSEXP, SEXP LambdaSEXP, SEXP invSigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Lambda(LambdaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type invSigma(invSigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_U(Z, Lambda, invSigma));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_Phi
+arma::vec sample_Phi(const arma::mat& Lambda, double alpha);
+RcppExport SEXP _scFM_sample_Phi(SEXP LambdaSEXP, SEXP alphaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Lambda(LambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_Phi(Lambda, alpha));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_c
+arma::vec sample_c(const arma::mat& U, const arma::vec& pi, const arma::mat& mu);
+RcppExport SEXP _scFM_sample_c(SEXP USEXP, SEXP piSEXP, SEXP muSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type U(USEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type pi(piSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type mu(muSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_c(U, pi, mu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_mu_pi
+arma::mat sample_mu_pi(const arma::mat& U, const arma::vec& c, double phi, double H, double alpha);
+RcppExport SEXP _scFM_sample_mu_pi(SEXP USEXP, SEXP cSEXP, SEXP phiSEXP, SEXP HSEXP, SEXP alphaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type U(USEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type c(cSEXP);
+    Rcpp::traits::input_parameter< double >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< double >::type H(HSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_mu_pi(U, c, phi, H, alpha));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_scFM_rcpparma_hello_world", (DL_FUNC) &_scFM_rcpparma_hello_world, 0},
     {"_scFM_rcpparma_outerproduct", (DL_FUNC) &_scFM_rcpparma_outerproduct, 1},
     {"_scFM_rcpparma_innerproduct", (DL_FUNC) &_scFM_rcpparma_innerproduct, 1},
     {"_scFM_rcpparma_bothproducts", (DL_FUNC) &_scFM_rcpparma_bothproducts, 1},
+    {"_scFM_sample_Z", (DL_FUNC) &_scFM_sample_Z, 8},
+    {"_scFM_sample_delta", (DL_FUNC) &_scFM_sample_delta, 3},
+    {"_scFM_sample_Lambda", (DL_FUNC) &_scFM_sample_Lambda, 6},
+    {"_scFM_sample_U", (DL_FUNC) &_scFM_sample_U, 3},
+    {"_scFM_sample_Phi", (DL_FUNC) &_scFM_sample_Phi, 2},
+    {"_scFM_sample_c", (DL_FUNC) &_scFM_sample_c, 3},
+    {"_scFM_sample_mu_pi", (DL_FUNC) &_scFM_sample_mu_pi, 5},
     {NULL, NULL, 0}
 };
 
