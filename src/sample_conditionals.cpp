@@ -66,19 +66,26 @@ arma::mat sample_Z(const arma::mat& Z, const arma::mat& delta, const arma::mat& 
 }
 
 // [[Rcpp::export]]
-arma::mat sample_delta(const arma::mat& Z, const arma::mat& X, double beta)
+arma::mat sample_delta(const arma::mat& delta, const arma::mat& Z, const arma::mat& X, double beta)
 {
    double p = Z.n_cols;
-   arma::mat delta_new(p, beta + 1, arma::fill::none);
+   arma::mat delta_new(delta.begin(), p, beta + 1);
    for (int j = 0; j < p; j++)
    {
       arma::vec X_j = X.col(j);
       arma::vec Z_j = Z.col(j);
-      for (int k = 0; k < beta; k++)
+      for (int k = 0; k < beta + 1; k++)
       {
-         delta_new(j, k) = arma::randu(arma::distr_param(max(Z_j(arma::find(X_j == k))), min(Z_j(arma::find(X_j == k + 1)))));
+         double lower_delta = (k > 0) ? delta_new(j, k - 1) : -arma::datum::inf;
+         double upper_delta = (k < beta) ? delta_new(j, k + 1) : arma::datum::inf;
+         arma::uvec ind_k   = arma::find(X_j == k);
+         arma::uvec ind_kp1;
+         if (k < beta) ind_kp1 = arma::find(X_j == k + 1);
+         else ind_kp1 = arma::find(X_j > k);
+         if (ind_k.n_elem > 0) lower_delta = max(Z_j(ind_k));
+         if (ind_kp1.n_elem > 0) upper_delta = min(Z_j(ind_kp1));
+         delta_new(j, k) = arma::randu(arma::distr_param(lower_delta, upper_delta));
       }
-      delta_new(j, beta) = arma::randu(arma::distr_param(max(Z_j(arma::find(X_j == beta))), min(Z_j(arma::find(X_j > beta)))));
    }
    
    return delta_new;
