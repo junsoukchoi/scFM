@@ -21,8 +21,8 @@ sample_Z <- function(Z, delta, Lambda, U, Sigma, invD, X, beta) {
     .Call(`_scFM_sample_Z`, Z, delta, Lambda, U, Sigma, invD, X, beta)
 }
 
-sample_delta <- function(Z, X, beta) {
-    .Call(`_scFM_sample_delta`, Z, X, beta)
+sample_delta <- function(delta, Z, X, beta) {
+    .Call(`_scFM_sample_delta`, delta, Z, X, beta)
 }
 
 sample_Lambda <- function(Z, U, Sigma, Phi, tau, Psi) {

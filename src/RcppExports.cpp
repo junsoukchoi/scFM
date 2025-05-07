@@ -73,15 +73,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_delta
-arma::mat sample_delta(const arma::mat& Z, const arma::mat& X, double beta);
-RcppExport SEXP _scFM_sample_delta(SEXP ZSEXP, SEXP XSEXP, SEXP betaSEXP) {
+arma::mat sample_delta(const arma::mat& delta, const arma::mat& Z, const arma::mat& X, double beta);
+RcppExport SEXP _scFM_sample_delta(SEXP deltaSEXP, SEXP ZSEXP, SEXP XSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_delta(Z, X, beta));
+    rcpp_result_gen = Rcpp::wrap(sample_delta(delta, Z, X, beta));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -161,7 +162,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_scFM_rcpparma_innerproduct", (DL_FUNC) &_scFM_rcpparma_innerproduct, 1},
     {"_scFM_rcpparma_bothproducts", (DL_FUNC) &_scFM_rcpparma_bothproducts, 1},
     {"_scFM_sample_Z", (DL_FUNC) &_scFM_sample_Z, 8},
-    {"_scFM_sample_delta", (DL_FUNC) &_scFM_sample_delta, 3},
+    {"_scFM_sample_delta", (DL_FUNC) &_scFM_sample_delta, 4},
     {"_scFM_sample_Lambda", (DL_FUNC) &_scFM_sample_Lambda, 6},
     {"_scFM_sample_U", (DL_FUNC) &_scFM_sample_U, 3},
     {"_scFM_sample_Phi", (DL_FUNC) &_scFM_sample_Phi, 2},
