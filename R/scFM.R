@@ -2,15 +2,16 @@
 #'
 #' @param x Data matrix (n × p), typically with count-type entries.
 #' @param k Number of latent factors.
+#' @param m To be written...
 #' @param starting A list of starting values for the parameters (e.g., Z, delta, Lambda, U, etc.).
 #' @param priors A list of prior hyperparameters (e.g., for Sigma and Phi).
 #' @param nmcmc Number of MCMC iterations.
 #'
-#' @returns A list containing MCMC samples for Lambda and U.
+#' @return A list containing MCMC samples for Lambda and U.
 #' @export
 #'
 #' @examples
-gibbs_SGCFM = function(x, k, starting, priors, nmcmc)
+gibbs_scFM = function(x, k, m = 1, starting, priors, nmcmc)
 {
    n = nrow(x)
    p = ncol(x)
@@ -62,7 +63,7 @@ gibbs_SGCFM = function(x, k, starting, priors, nmcmc)
       #   if (any(Z[i, tind] < lower | Z[i, tind] > upper))
       #      Z[i, tind] = TruncatedNormal::rtmvnorm(1, mu = cmu, sigma = cSigma, lb = lower, ub = upper)
       #}
-      Z = sample_Z(Z, delta, Lambda, U, Sigma, diag(1 / D), x, 1)
+      Z = sample_Z(Z, delta, Lambda, U, Sigma, diag(1 / D), x, m)
       
       # sample delta from its full conditional
       #z0_max = rep(NA, p)
@@ -78,7 +79,7 @@ gibbs_SGCFM = function(x, k, starting, priors, nmcmc)
       #}
       #delta[ , 1] = runif(p, min = z0_max, max = z1_min)
       #delta[ , 2] = runif(p, min = z1_max, max = zo_min)
-      delta = sample_delta(Z, x, 1)    # Rcpp function to sample delta
+      delta = sample_delta(delta, Z, x, m)    # Rcpp function to sample delta
       
       # sample Lambda from its full conditional
       #for (j in 1 : p)
@@ -151,4 +152,3 @@ gibbs_SGCFM = function(x, k, starting, priors, nmcmc)
    #out$Psi    = Psi_gibbs
    return(out)
 }
-
