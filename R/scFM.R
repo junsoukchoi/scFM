@@ -6,12 +6,13 @@
 #' @param starting A list of starting values for the parameters (e.g., Z, delta, Lambda, U, etc.).
 #' @param priors A list of prior hyperparameters (e.g., for Sigma and Phi).
 #' @param nmcmc Number of MCMC iterations.
+#' @param nburnin Burn-in period.
 #'
 #' @return A list containing MCMC samples for Lambda and U.
 #' @export
 #'
 #' @examples
-gibbs_scFM = function(x, k, m = 1, starting, priors, nmcmc)
+gibbs_scFM = function(x, k, m = 1, starting, priors, nmcmc, nburnin)
 {
    n = nrow(x)
    p = ncol(x)
@@ -27,14 +28,14 @@ gibbs_scFM = function(x, k, m = 1, starting, priors, nmcmc)
    Psi    = starting$Psi
    
    # initialize MCMC samples
-   #Z_gibbs      = array(0, dim = c(n, p, nmcmc))
-   #delta_gibbs  = array(0, dim = c(p, 2, nmcmc))
-   Lambda_gibbs = array(0, dim = c(p, k, nmcmc))
-   U_gibbs      = array(0, dim = c(n, k, nmcmc))
-   #Sigma_gibbs  = array(0, dim = c(p, p, nmcmc))
-   #Phi_gibbs    = matrix(0, k, nmcmc)
-   #tau_gibbs    = rep(0, nmcmc)
-   #Psi_gibbs    = array(0, dim = c(p, k, nmcmc))
+   #Z_gibbs      = array(0, dim = c(n, p, nmcmc - nburnin))
+   #delta_gibbs  = array(0, dim = c(p, 2, nmcmc - nburnin))
+   Lambda_gibbs = array(0, dim = c(p, k, nmcmc - nburnin))
+   U_gibbs      = array(0, dim = c(n, k, nmcmc - nburnin))
+   #Sigma_gibbs  = array(0, dim = c(p, p, nmcmc - nburnin))
+   #Phi_gibbs    = matrix(0, k, nmcmc - nburnin)
+   #tau_gibbs    = rep(0, nmcmc - nburnin)
+   #Psi_gibbs    = array(0, dim = c(p, k, nmcmc - nburnin))
    
    # iterate
    for (iter in 1 : nmcmc)
@@ -130,14 +131,17 @@ gibbs_scFM = function(x, k, m = 1, starting, priors, nmcmc)
       if (iter %% 100 == 0) cat("iter =", iter, "\n")
       
       # store MCMC samples
-      #Z_gibbs[ , , iter]      = Z
-      #delta_gibbs[ , , iter]  = delta
-      Lambda_gibbs[ , , iter] = Lambda
-      U_gibbs[ , , iter]      = U
-      #Sigma_gibbs[ , , iter]  = Sigma
-      #Phi_gibbs[ , iter]      = Phi
-      #tau_gibbs[iter]         = tau
-      #Psi_gibbs[ , , iter]    = Psi
+      if (iter > nburnin)
+      {
+         #Z_gibbs[ , , iter - nburnin]      = Z
+         #delta_gibbs[ , , iter - nburnin]  = delta
+         Lambda_gibbs[ , , iter - nburnin] = Lambda
+         U_gibbs[ , , iter - nburnin]      = U
+         #Sigma_gibbs[ , , iter - nburnin]  = Sigma
+         #Phi_gibbs[ , iter - nburnin]      = Phi
+         #tau_gibbs[iter - nburnin]         = tau
+         #Psi_gibbs[ , , iter - nburnin]    = Psi
+      }
    }
    
    # return MCMC samples
