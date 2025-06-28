@@ -6,12 +6,17 @@ sequencing data
 - [Example](#example)
 
 The R package `scFM` implements an efficient data-augmented Gibbs
-sampler for scFM, a novel Bayesian segmented Gaussian copula factor
-model for single-cell sequencing data. This method enables factor
-analysis of single-cell sequencing data by effectively addressing
-challenges such as inflated low counts (dropout) and high skewness in
-the data, while also automatically determining the number of latent
-factors.
+sampler for scFM (Choi et al., 2025+), a novel Bayesian segmented
+Gaussian copula factor model for single-cell sequencing data. This
+method enables factor analysis of single-cell sequencing data by
+effectively addressing challenges such as inflated low counts (dropout)
+and high skewness in the data, while also automatically determining the
+number of latent factors.
+
+**Reference:**
+
+Choi, J., Chung, H. C., Gaynanova, I., & Ni, Y. (2025+). Bayesian
+segmented Gaussian copula factor model for single-cell sequencing data.
 
 ## Installation
 
