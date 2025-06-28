@@ -148,11 +148,6 @@ out    = gibbs_scFM(x, k, m = 1, starting, priors, nmcmc = nmcmc, nburnin = nbur
 proc.time() - p.time
 ```
 
-```{r}
-rm(out)
-load("/Users/admin/Desktop/scFM_scRNAseq.RData")  # loads 'x', 'anno', 'out'
-```
-
 We compute posterior means of the factor loadings and scores by averaging over MCMC samples.
 
 ```{r posterior-means}
