@@ -16,11 +16,10 @@ LinkingTo:
     RcppArmadillo
 Imports:
     Rcpp,
-    stats,
-    GIGrvg,
-    tmvnsim,
     TruncatedNormal,
-    actuar
+    tmvnsim,
+    GIGrvg,
+    statmod
 Depends: 
     R (>= 2.10)
 LazyData: true
