@@ -4,7 +4,7 @@
 \alias{gibbs_scFM}
 \title{Gibbs sampler for Bayesian segmented Gaussian copula factor model}
 \usage{
-gibbs_scFM(x, k, m = 1, starting, priors, nmcmc)
+gibbs_scFM(x, k, m = 1, starting, priors, nmcmc, nburnin)
 }
 \arguments{
 \item{x}{Data matrix (n × p), typically with count-type entries.}
@@ -18,6 +18,8 @@ gibbs_scFM(x, k, m = 1, starting, priors, nmcmc)
 \item{priors}{A list of prior hyperparameters (e.g., for Sigma and Phi).}
 
 \item{nmcmc}{Number of MCMC iterations.}
+
+\item{nburnin}{Burn-in period.}
 }
 \value{
 A list containing MCMC samples for Lambda and U.

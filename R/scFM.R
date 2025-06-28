@@ -12,7 +12,7 @@
 #' @export
 #'
 #' @examples
-gibbs_scFM = function(x, k, m = 1, starting, priors, nmcmc, nburnin)
+gibbs_scFM = function(x, k, m, starting, priors, nmcmc, nburnin)
 {
    n = nrow(x)
    p = ncol(x)
