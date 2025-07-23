@@ -13,9 +13,9 @@ gibbs_scFM(x, k, m, starting, priors, nmcmc, nburnin)
 
 \item{m}{An integer specifying a model hyperparameter in scFM that serves as a threshold to distinguish between inflated low counts and typical higher counts in single-cell sequencing data.}
 
-\item{starting}{A list of initial values for the data-augmented Gibbs sampler for scFM. The list should include the tags \code{Z}, \code{delta}, \code{Lambda}, \code{U}, \code{Sigma}, \code{Phi}, \code{tau}, and \code{Psi}, each representing the initial MCMC value for the corresponding scFM parameter.}
+\item{starting}{A list of initial values for the data-augmented Gibbs sampler for scFM. The list should include the tags \code{Z}, \code{delta}, \code{Lambda}, \code{U}, \code{Sigma}, \code{phi}, \code{tau}, and \code{Xi}, each representing the initial MCMC value for the corresponding scFM parameter.}
 
-\item{priors}{A list of hyperparameter values. Valid tags are \code{Sigma} and \code{Phi}, specifying the hyperparameters for the inverse-gamma prior on error variances (i.e., \eqn{a_{\sigma}}, \eqn{b_{\sigma}}) and the Dirichlet-Laplace prior on factor loadings (i.e., \eqn{\alpha}), respectively.}
+\item{priors}{A list of hyperparameter values. Valid tags are \code{Sigma} and \code{phi}, specifying the hyperparameters for the inverse-gamma prior on error variances (i.e., \eqn{a_{\sigma}}, \eqn{b_{\sigma}}) and the Dirichlet-Laplace prior on factor loadings (i.e., \eqn{\alpha}), respectively.}
 
 \item{nmcmc}{An integer specifying the total number of MCMC iterations.}
 
@@ -46,7 +46,7 @@ m = 1
 k_max = 8
 priors = list()
 priors$Sigma = c(0.1, 0.1)
-priors$Phi   = 0.5
+priors$phi   = 0.5
 
 #################### initialize parameters ####################
 # initialize Z using the scaled empirical CDF of each variable
@@ -72,10 +72,9 @@ starting$U = out0$scores
 # initialize the remaining parameters by sampling from their full conditional distributions, 
 # given the initialized values of Z, delta, Lambda, and U.
 Sigma = diag(1, p)
-Phi = rep(1 / k_max, k_max)
+phi = rep(1 / k_max, k_max)
 tau = 1
-Psi = matrix(rexp(p * k_max, rate = 0.5), p, k_max)
-
+Xi = matrix(rexp(p * k_max, rate = 0.5), p, k_max)
 for (iter in 1 : 1000) 
 {
    Sigma[diag(rep(TRUE, p))] = 1 / rgamma(p, shape = priors$Sigma[1] + rep(n / 2, p), 
@@ -85,21 +84,21 @@ for (iter in 1 : 1000)
    H = rep(NA, k_max)
    for (l in 1 : k_max) 
    {
-      H[l] = rgig(1, lambda = priors$Phi - p, chi = 2 * sum(abs(starting$Lambda[ , l])), psi = 1)
+      H[l] = rgig(1, lambda = priors$phi - p, chi = 2 * sum(abs(starting$Lambda[ , l])), psi = 1)
    }
    
-   Phi = H / sum(H)
+   phi = H / sum(H)
    
-   tau = rgig(1, lambda = k_max * (priors$Phi - p), chi = 2 * sum(t(abs(starting$Lambda)) / Phi), psi = 1)
+   tau = rgig(1, lambda = k_max * (priors$phi - p), chi = 2 * sum(t(abs(starting$Lambda)) / phi), psi = 1)
    
-   Psi_tilde = rinvgauss(p * k_max, mean = c(t(Phi * t(tau / abs(starting$Lambda)))))
-   Psi = matrix(1 / Psi_tilde, p, k_max)
+   Xi_tilde = rinvgauss(p * k_max, mean = c(t(phi * t(tau / abs(starting$Lambda)))))
+   Xi = matrix(1 / Xi_tilde, p, k_max)
 }
 
 starting$Sigma = Sigma
-starting$Phi   = Phi
+starting$phi   = phi
 starting$tau   = tau
-starting$Psi   = Psi
+starting$Xi    = Xi
 
 #################### run our proposed data-augmented Gibbs sampler for scFM ####################
 nmcmc   = 10000
