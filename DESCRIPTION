@@ -5,9 +5,8 @@ Authors@R: c(
     person("Junsouk", "Choi", , "junsoukchoi@korea.ac.kr", role = "aut"),
     person("Seunghoon", "Han", , "syshhan5172@naver.com", role = "cre")
   )
-Description: Implements the Bayesian segmented Gaussian copula factor
-    model for single-cell sequencing data.
-License: 
+Description: Implements an efficient Markov chain Monte Calro algorithm for the Bayesian segmented Gaussian copula factor model for single-cell sequencing data.
+License: GPL (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

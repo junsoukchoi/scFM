@@ -1,0 +1,238 @@
+---
+title: "scFM: Bayesian segmented Gaussian copula factor model for single-cell sequencing data"
+author: "Junsouk Choi"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scFM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  collapse = TRUE,
+  comment = NA,
+  eval = TRUE,
+  cache = TRUE,
+  tidy = TRUE,
+  tidy.opts = list(width.cutoff = 60),
+  fig.width = 7,
+  fig.height = 5.25,
+  fig.align = "center"
+)
+```
+
+# Introduction
+
+The `scFM` package implements an efficient data-augmented Gibbs sampler for the Bayesian segmented Gaussian copula factor model (scFM) developed by Choi et el. (2025+).  The scFM model directly addresses both the inflation of low counts and the high skewness observed in single-cell sequencing data by incorporating a segmentation procedure within the copula framework.
+
+In this vignette, we provide a tutorial on how to use the core functionalities of the `scFM` package. 
+
+# LCL Data
+
+This vignette utilizes the LCL dataset, which is provided as a built-in dataset in the `scFM` package. The LCL dataset was used for real data application of scFM in Choi et el. (2025+). It consists of $n=5,135$ high-quality cells with the top $p=100$ most variable genes, selected after pre-processing the original set of 7,247 cells from lymphoblastoid cell line (LCL) GM12878, which was initially sequenced for 18,170 genes. In this vignette, we reproduce the analysis presented in Section 5 of Choi et al. (2025+).
+
+```{r load-data, cache=TRUE}
+# load necessary packages including scFM
+library(scFM)
+library(GIGrvg)
+library(statmod)
+library(ggplot2)
+library(tibble)
+library(SingleR)
+library(celldex)
+
+# set random seed
+set.seed(7)
+
+# load the built-in LCL dataset
+data(LCL)
+x = LCL
+dim(x)      # check dimensions of the dataset
+```
+
+# Using `scFM` to Analyze the LCL Dataset
+
+## Hyperparameter Configuration
+
+To fit the scFM model to the LCL dataset, we first need to specify its hyperparameters. We set the maximum number of latent factors to $k_{max} = 8$, and select a threshold  of $m = 1$ that distinguishes inflated low counts from typical higher counts in single-cell data. See Choi et al. (2025+) for further details on the choice of these two hyperparameters. In addition to $k_{max}$ and $m$, scFM includes two other hyperparameters: $(a_\sigma, b_\sigma)$ for the inverse-gamma prior on the error variances (specified by the tag \code{Sigma}), and $\alpha$ for the column-wise Dirichlet-Laplace prior on the factor loadings matrix (specified by the tag \code{phi}). By default, we use $\alpha = 0.5$ and $a_\sigma = b_\sigma = 0.1$, corresponding to non-informative priors.
+
+
+```{r set-hyperparameters, cache=TRUE}
+# set k_{max} and m
+k = 8
+m = 1
+
+# set hyperparameters for priors
+priors = list()
+priors$Sigma = c(0.1, 0.1)
+priors$phi   = 0.5
+```
+
+## MCMC Initialization
+
+To run the data-augmented Gibbs sampler for scFM, we should also initialize the model parameters for MCMC. We initialize the latent Gaussian $\mathbf{Z}$ using the scaled empirical CDF of each variable in the data. The parameter $\boldsymbol{\delta}$ can be initialized based on the proportion of low counts considered inflated (here, 0 and 1, since $m = 1$).
+
+```{r init-Z-delta, cache=TRUE}
+# initialize parameters Z and delta
+starting = list()
+n = nrow(x)
+p = ncol(x)
+ecdf.scale = n / (n + 1)
+eFx   = apply(x, 2, ecdf)
+eFx   = lapply(eFx, function(x){  function(y) ecdf.scale * x(y)  })
+eFxx  = Map(function(f, x) do.call(f, list(x)), eFx, plyr::alply(x, 2))
+starting$Z     = matrix(unlist(lapply(eFxx, function(pr) qnorm(pr))), n, p)
+starting$delta = matrix(0, p,  m + 1)
+for (d in 0 : m)
+{
+   starting$delta[ , d + 1] = qnorm(colMeans(x <= d))
+}
+```
+
+We initialize the factor loadings and scores by performing standard factor analysis on the latent $\mathbf{Z}$ initialized above.
+
+```{r init-Lambda-U, cache=TRUE}
+# initialize Lambda and U using standard factor analysis
+out0 = factanal(starting$Z, factors = k, scores = "regression")
+starting$Lambda = as.matrix(out0$loadings)
+starting$U = out0$scores
+```
+
+We initialize the remaining parameters $\boldsymbol{\Sigma}$, $\phi$, $\tau$, and $\boldsymbol{\Xi}$ by performing a short Gibbs sampling run, conditional on the values obtained for the other parameters above.
+
+```{r init-remainders, cache=TRUE}
+# initialize Sigma, phi, tau, and Xi via a short Gibbs sampling
+Sigma = diag(1, p)
+phi = rep(1 / k, k)
+tau = 1
+Xi = matrix(rexp(p * k, rate = 0.5), p, k)
+
+for (iter in 1 : 1000) {
+   Sigma[diag(rep(TRUE, p))] = 1 / rgamma(p, shape = priors$Sigma[1] + rep(n / 2, p), 
+                                          rate = priors$Sigma[2] + 0.5 * colSums((starting$Z - tcrossprod(starting$U, starting$Lambda))^2))
+   
+   H = rep(NA, k)
+   for (l in 1 : k) {
+      H[l] = rgig(1, lambda = priors$phi - p, chi = 2 * sum(abs(starting$Lambda[ , l])), psi = 1)
+   }
+   phi = H / sum(H)
+   tau = rgig(1, lambda = k * (priors$phi - p), chi = 2 * sum(t(abs(starting$Lambda)) / phi), psi = 1)
+   Xi_tilde = rinvgauss(p * k, mean = c(t(phi * t(tau / abs(starting$Lambda)))))
+   Xi = matrix(1 / Xi_tilde, p, k)
+}
+
+starting$Sigma = Sigma
+starting$phi   = phi
+starting$tau   = tau
+starting$Xi    = Xi
+```
+
+## Data-augmented Gibbs Sampling for scFM
+
+We are now ready to run the data-augmented Gibbs sampler for the scFM model using the `gibbs_scFM` function from the `scFM` package. This function produces MCMC samples of the latent factor loadings ($\boldsymbol{\Lambda}$) and factor scores ($\mathbf{U}$), which are labeled as `Lambda` and `U`, respectively. Note that this process may take a few hours to complete. After the Gibbs sampler completes, one can compute the posterior mean of the factor scores using the resulting MCMC samples.
+
+```{r fit-scFM, cache=TRUE}
+# run the data-augmented Gibbs sampling for scFM
+nmcmc   = 10000
+nburnin = 5000
+out    = gibbs_scFM(x, k, m = 1, starting, priors, nmcmc = nmcmc, nburnin = nburnin)
+
+# compute posterior means of the factor loadings and scores
+loading_est = apply(out$Lambda, c(1, 2), mean) 
+score_est = apply(out$U, c(1, 2), mean) 
+```
+
+## Selection of Significant Latent Factors
+
+In scFM, the number of significant latent factors is determined via the column-wise Dirichlet-Laplace prior on the factor loadings matrix $\boldsymbol{\Lambda}$. Posterior inference on the number of significant factors is performed by applying k-means clustering to the columns of each MCMC asmple of $\boldsymbol{\Lambda}$, dividing them into two clusters: one representing significant loadings and the other representing near-zero loadings. For each MCMC sample, the number of significant factors is defined by the size of the cluster whose loadings exhibit greater deviation from zero. The final estimate of the number of significant latent factors, denoted as $\hat{k}$, is obtained by taking the mode across all samples. After estimating $\hat{k}$, we identify the corresponding significant factors by selecting the $\hat{k}$ columns of the posterior mean of $\boldsymbol{\Lambda}$ that have the largest $\ell_2$-norms.
+
+```{r identify-significant-factors, cache=TRUE}
+# infer the number of significant latent factors
+sig_facto = matrix(0, dim(out$Lambda)[2], dim(out$Lambda)[3])
+for (i in 1 : dim(out$Lambda)[3])
+{
+   kmeans_lambda = kmeans(t(out$Lambda[ , , i]), centers = 2, nstart = 10)
+   sig_facto[which(kmeans_lambda$cluster == which.max(rowSums(kmeans_lambda$centers^2))), i] = 1
+}
+
+table(colSums(sig_facto))         # indicates the existence of two significant latent factors
+
+# select the significant latent factors
+sqrt(colSums(loading_est^2))      # the first two factors show the largest L2-norm
+score_est = score_est[ , 1 : 2]
+```
+
+The scFM model ensures the identifiability of factor loadings (up to permutation and sign flip), enabling meaningful and reproducible interpretation of the latent factors. To interpret the significant latent factors, we examine the absolute values of their loadings to identify the most associated genes. Factor 1 exhibits large absolute loadings for genes strongly related to cell cycling, while Factor 2 shows high loadings for genes involved in immune functions. Accordingly, we interpret Factors 1 and 2 as representing cell cycle and immune function activity, respectively. Further details on the interpretation of the identified factors are provided in Section 5.2 of Choi et al. (2025+).
+
+```{r interpret-factors, cache=TRUE}
+# display absolute values of the estimated factor loadings on the significant factors
+rownames(loading_est) = colnames(x)
+
+order1 = order(abs(loading_est[ , 1]), decreasing = TRUE)
+df = data.frame(gene = factor(colnames(x), levels = colnames(x)[order1]), value = abs(loading_est[ , 1]))
+loading1 = ggplot(df, aes(x = gene, y = value)) + geom_bar(stat = "identity") + scale_x_discrete(guide = guide_axis(n.dodge = 8)) + labs(x = "Genes", y = "Absolute loadings on Factor 1")
+loading1
+
+order2 = order(abs(loading_est[ , 2]), decreasing = TRUE)
+df = data.frame(gene = factor(colnames(x), levels = colnames(x)[order2]), value = abs(loading_est[ , 2]))
+loading2 = ggplot(df, aes(x = gene, y = value)) + geom_bar(stat = "identity") + scale_x_discrete(guide = guide_axis(n.dodge = 8)) + labs(x = "Genes", y = "Absolute loadings on Factor 2")
+loading2
+
+# check genes with the 10 largest abosolute loadings for each significant factor
+sort(loading_est[rank(abs(loading_est[ , 1])) > 90, 1], decreasing = TRUE)
+sort(loading_est[rank(abs(loading_est[ , 2])) > 90, 2], decreasing = TRUE)
+```
+
+# Downstream Analysis: Cell Clustering
+
+The results from `scFM` can be utilized for further downstream analyses. In this vignette, we use them to identify distinct cell subtypes or states in LCL. The scores of the two selected factors serve as a low-dimensional representation of the high-dimensional gene expression profiles in the LCL scRNA-seq data. Therefore, by clustering cells in this low-dimensional factor space, we can uncover groups of cells exhibiting similar expression behavior. 
+
+Toward this end, we apply the k-means algorithm to the latent factor scores. Using the elbow method to determine the optimal number of clusters, we identify three distinct cell clusters.
+
+```{r clustering, cache=TRUE}
+# determine the number of clusters via the elbow method
+n_clusters = 10
+wss = numeric(n_clusters)
+for (i in 1 : n_clusters)
+{
+   # fit the model for the given number of clusters
+   km.out = kmeans(score_est, centers = i, nstart = 100, iter.max = 10000)
+   # save the within cluster sum of squares
+   wss[i] = km.out$tot.withinss
+}
+
+# produce a scree plot to determine the number of the underlying cell clusters
+wss_df = tibble(clusters = 1 : n_clusters, wss = wss)
+scree_plot = ggplot(wss_df, aes(x = clusters, y = wss, group = 1)) + 
+   geom_point(size = 4) + 
+   geom_line() +
+   scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +
+   xlab('Number of clusters')
+scree_plot
+
+# apply k-means clustering with the chosen k = 3
+out_cell_types = kmeans(score_est, centers = 3, nstart = 100, iter.max = 10000)
+```
+
+The clustering results can be visualized on the factor space defined by the two significant factors identified by scFM. Interpretation of the identified latent factors by scFM suggests that Cluster 1 corresponds to cells associated with the cell cycle, Cluster 2 comprises immune-related cells, and Cluster 3 consists of the remaining cells. Further details on interpreting these clusters can be found in Section 5.3 of Choi et al. (2025+).
+
+```{r visualize-clustering, cache=TRUE}
+# visualize cell clustering (excluding an outlier)
+df = data.frame(facto1 = score_est[ , 1], facto2 = score_est[ , 2], Cluster = factor(out_cell_types$cluster))
+plot_cell_types = ggplot(df[-4148, ], aes(facto1, facto2, color = Cluster)) + geom_point(alpha = 0.3) + labs(x = "Factor 1", y = "Factor 2")
+plot_cell_types
+```
+
+In addition to interpreting the cell clusters based on the latent factors identified by scFM, one can also characterize them using reference cell type markers, for example, with the `SingleR` R package. Specifically, `SingleR` identifies Cluster 1 as CD34+ Pro B-cells and Clusters 2 and 3 as B-cells. Since pro-B cells are known to represent a developmental stage in the B lineage with active cell cycling, the clear separation of Cluster 1 from Clusters 2 and 3 based on Factor 1 scores reinforces the interpretation of Factor 1 as a cell cycle-related factor. Furthermore, factor analysis using scFM identifies clusters not distinguished by `SingleR` (i.e., Clusters 2 and 3), highlighting the strength of the scFM method in detecting subtle cell clustering patterns within single-cell sequencing data.
+
+```{r singleR, cache=TRUE}
+# annotate clusters using SingleR
+hpca.se = HumanPrimaryCellAtlasData()
+hpca.se
+annotate_clusters = SingleR(test = t(x), ref = hpca.se, clusters = out_cell_types$cluster, labels = hpca.se$label.main)
+annotate_clusters
+```

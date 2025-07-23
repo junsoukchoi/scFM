@@ -9,3 +9,5 @@ src/*.dll
 inst/doc
 vignettes/*_cache/
 vignettes/*_cache/
+/doc/
+/Meta/
