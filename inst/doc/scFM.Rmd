@@ -3,7 +3,7 @@ title: "scFM: Bayesian segmented Gaussian copula factor model for single-cell se
 author: "Junsouk Choi"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{scFM}
+  %\VignetteIndexEntry{scFM: Bayesian segmented Gaussian copula factor model for single-cell sequencing data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -58,7 +58,7 @@ dim(x)      # check dimensions of the dataset
 
 ## Hyperparameter Configuration
 
-To fit the scFM model to the LCL dataset, we first need to specify its hyperparameters. We set the maximum number of latent factors to $k_{max} = 8$, and select a threshold  of $m = 1$ that distinguishes inflated low counts from typical higher counts in single-cell data. See Choi et al. (2025+) for further details on the choice of these two hyperparameters. In addition to $k_{max}$ and $m$, scFM includes two other hyperparameters: $(a_\sigma, b_\sigma)$ for the inverse-gamma prior on the error variances (specified by the tag \code{Sigma}), and $\alpha$ for the column-wise Dirichlet-Laplace prior on the factor loadings matrix (specified by the tag \code{phi}). By default, we use $\alpha = 0.5$ and $a_\sigma = b_\sigma = 0.1$, corresponding to non-informative priors.
+To fit the scFM model to the LCL dataset, we first need to specify its hyperparameters. We set the maximum number of latent factors to $k_{max} = 8$, and select a threshold  of $m = 1$ that distinguishes inflated low counts from typical higher counts in single-cell data. See Choi et al. (2025+) for further details on the choice of these two hyperparameters. In addition to $k_{max}$ and $m$, scFM includes two other hyperparameters: $(a_\sigma, b_\sigma)$ for the inverse-gamma prior on the error variances (specified by the tag `Sigma`), and $\alpha$ for the column-wise Dirichlet-Laplace prior on the factor loadings matrix (specified by the tag `phi`). By default, we use $\alpha = 0.5$ and $a_\sigma = b_\sigma = 0.1$, corresponding to non-informative priors.
 
 
 ```{r set-hyperparameters, cache=TRUE}
@@ -102,7 +102,7 @@ starting$Lambda = as.matrix(out0$loadings)
 starting$U = out0$scores
 ```
 
-We initialize the remaining parameters $\boldsymbol{\Sigma}$, $\phi$, $\tau$, and $\boldsymbol{\Xi}$ by performing a short Gibbs sampling run, conditional on the values obtained for the other parameters above.
+The remaining parameters $\boldsymbol{\Sigma}$, $\phi$, $\tau$, and $\boldsymbol{\Xi}$ are initialized by performing a short Gibbs sampling run, conditional on the values obtained for the other parameters above.
 
 ```{r init-remainders, cache=TRUE}
 # initialize Sigma, phi, tau, and Xi via a short Gibbs sampling
@@ -227,7 +227,7 @@ plot_cell_types = ggplot(df[-4148, ], aes(facto1, facto2, color = Cluster)) + ge
 plot_cell_types
 ```
 
-In addition to interpreting the cell clusters based on the latent factors identified by scFM, one can also characterize them using reference cell type markers, for example, with the `SingleR` R package. Specifically, `SingleR` identifies Cluster 1 as CD34+ Pro B-cells and Clusters 2 and 3 as B-cells. Since pro-B cells are known to represent a developmental stage in the B lineage with active cell cycling, the clear separation of Cluster 1 from Clusters 2 and 3 based on Factor 1 scores reinforces the interpretation of Factor 1 as a cell cycle-related factor. Furthermore, factor analysis using scFM identifies clusters not distinguished by `SingleR` (i.e., Clusters 2 and 3), highlighting the strength of the scFM method in detecting subtle cell clustering patterns within single-cell sequencing data.
+In addition to interpreting the cell clusters based on the latent factors identified by scFM, one can also characterize them using reference cell type markers, for example, with the `SingleR` R package. Specifically, `SingleR` identifies Cluster 1 as CD34+ Pro B-cells and Clusters 2 and 3 as B-cells. Since pro-B cells are known to represent a developmental stage in the B lineage with active cell cycling, the clear separation of Cluster 1 from Clusters 2 and 3 based on Factor 1 scores reinforces the interpretation of Factor 1 as a cell cycle-related factor. Furthermore, factor analysis using scFM identifies clusters not distinguished by `SingleR` (i.e., Clusters 2 and 3), highlighting the strength of the scFM method in detecting subtle cellular heterogeneity that may be overlooked by reference-based annotation methods.
 
 ```{r singleR, cache=TRUE}
 # annotate clusters using SingleR

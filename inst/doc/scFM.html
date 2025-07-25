@@ -396,9 +396,9 @@ Choi et al. (2025+) for further details on the choice of these two
 hyperparameters. In addition to <span class="math inline">\(k_{max}\)</span> and <span class="math inline">\(m\)</span>, scFM includes two other
 hyperparameters: <span class="math inline">\((a_\sigma,
 b_\sigma)\)</span> for the inverse-gamma prior on the error variances
-(specified by the tag ), and <span class="math inline">\(\alpha\)</span>
-for the column-wise Dirichlet-Laplace prior on the factor loadings
-matrix (specified by the tag ). By default, we use <span class="math inline">\(\alpha = 0.5\)</span> and <span class="math inline">\(a_\sigma = b_\sigma = 0.1\)</span>, corresponding
+(specified by the tag <code>Sigma</code>), and <span class="math inline">\(\alpha\)</span> for the column-wise
+Dirichlet-Laplace prior on the factor loadings matrix (specified by the
+tag <code>phi</code>). By default, we use <span class="math inline">\(\alpha = 0.5\)</span> and <span class="math inline">\(a_\sigma = b_\sigma = 0.1\)</span>, corresponding
 to non-informative priors.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># set k_{max} and m</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">8</span></span>
@@ -440,9 +440,9 @@ factor analysis on the latent <span class="math inline">\(\mathbf{Z}\)</span> in
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>out0 <span class="ot">=</span> <span class="fu">factanal</span>(starting<span class="sc">$</span>Z, <span class="at">factors =</span> k, <span class="at">scores =</span> <span class="st">&quot;regression&quot;</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>starting<span class="sc">$</span>Lambda <span class="ot">=</span> <span class="fu">as.matrix</span>(out0<span class="sc">$</span>loadings)</span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>starting<span class="sc">$</span>U <span class="ot">=</span> out0<span class="sc">$</span>scores</span></code></pre></div>
-<p>We initialize the remaining parameters <span class="math inline">\(\boldsymbol{\Sigma}\)</span>, <span class="math inline">\(\phi\)</span>, <span class="math inline">\(\tau\)</span>, and <span class="math inline">\(\boldsymbol{\Xi}\)</span> by performing a short
-Gibbs sampling run, conditional on the values obtained for the other
-parameters above.</p>
+<p>The remaining parameters <span class="math inline">\(\boldsymbol{\Sigma}\)</span>, <span class="math inline">\(\phi\)</span>, <span class="math inline">\(\tau\)</span>, and <span class="math inline">\(\boldsymbol{\Xi}\)</span> are initialized by
+performing a short Gibbs sampling run, conditional on the values
+obtained for the other parameters above.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># initialize Sigma, phi, tau, and Xi via a short Gibbs</span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># sampling</span></span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>Sigma <span class="ot">=</span> <span class="fu">diag</span>(<span class="dv">1</span>, p)</span>
@@ -653,8 +653,8 @@ based on Factor 1 scores reinforces the interpretation of Factor 1 as a
 cell cycle-related factor. Furthermore, factor analysis using scFM
 identifies clusters not distinguished by <code>SingleR</code> (i.e.,
 Clusters 2 and 3), highlighting the strength of the scFM method in
-detecting subtle cell clustering patterns within single-cell sequencing
-data.</p>
+detecting subtle cellular heterogeneity that may be overlooked by
+reference-based annotation methods.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># annotate clusters using SingleR</span></span>
 <span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>hpca.se <span class="ot">=</span> <span class="fu">HumanPrimaryCellAtlasData</span>()</span>
 <span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>hpca.se</span>
@@ -670,11 +670,11 @@ data.</p>
 <span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>    <span class="at">labels =</span> hpca.se<span class="sc">$</span>label.main)</span>
 <span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>annotate_clusters</span>
 <span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a>DataFrame with <span class="dv">3</span> rows and <span class="dv">4</span> columns</span>
-<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a>                            scores           labels delta.next    pruned.labels</span>
-<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a>                          <span class="sc">&lt;</span>matrix<span class="sc">&gt;</span>      <span class="er">&lt;</span>character<span class="sc">&gt;</span>  <span class="er">&lt;</span>numeric<span class="sc">&gt;</span>      <span class="er">&lt;</span>character<span class="sc">&gt;</span></span>
-<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="dv">1</span> <span class="fl">0.4689033</span><span class="sc">:</span><span class="fl">0.625771</span><span class="sc">:</span><span class="fl">0.5134110</span><span class="sc">:</span>... Pro<span class="sc">-</span>B_cell_CD34<span class="sc">+</span>  <span class="fl">0.0963236</span> Pro<span class="sc">-</span>B_cell_CD34<span class="sc">+</span></span>
-<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="dv">2</span> <span class="fl">0.0973032</span><span class="sc">:</span><span class="fl">0.286956</span><span class="sc">:</span><span class="fl">0.0590502</span><span class="sc">:</span>...           B_cell  <span class="fl">0.0502668</span>           B_cell</span>
-<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="dv">3</span> <span class="fl">0.2015803</span><span class="sc">:</span><span class="fl">0.469911</span><span class="sc">:</span><span class="fl">0.1698579</span><span class="sc">:</span>...           B_cell  <span class="fl">0.0831534</span>           B_cell</span></code></pre></div>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a>                           scores           labels delta.next    pruned.labels</span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a>                         <span class="sc">&lt;</span>matrix<span class="sc">&gt;</span>      <span class="er">&lt;</span>character<span class="sc">&gt;</span>  <span class="er">&lt;</span>numeric<span class="sc">&gt;</span>      <span class="er">&lt;</span>character<span class="sc">&gt;</span></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="dv">1</span> <span class="fl">0.4689033</span><span class="sc">:</span><span class="fl">0.596736</span><span class="sc">:</span><span class="fl">0.625771</span><span class="sc">:</span>... Pro<span class="sc">-</span>B_cell_CD34<span class="sc">+</span>  <span class="fl">0.0963236</span> Pro<span class="sc">-</span>B_cell_CD34<span class="sc">+</span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="dv">2</span> <span class="fl">0.0973032</span><span class="sc">:</span><span class="fl">0.584474</span><span class="sc">:</span><span class="fl">0.286956</span><span class="sc">:</span>...           B_cell  <span class="fl">0.0502668</span>           B_cell</span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="dv">3</span> <span class="fl">0.2015803</span><span class="sc">:</span><span class="fl">0.710697</span><span class="sc">:</span><span class="fl">0.469911</span><span class="sc">:</span>...           B_cell  <span class="fl">0.0831534</span>           B_cell</span></code></pre></div>
 </div>
 
 
